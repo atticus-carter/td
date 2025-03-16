@@ -6,6 +6,7 @@ class CombineManager:
         self.combining_towers = []  # List of towers selected for combining
         self.is_combining = False   # Whether we're in combining mode
         self.combine_preview = None # Preview position for combined tower
+        self.towers = []            # Reference to the tower list
 
     def find_combinable_towers(self, selected_tower):
         """Find towers that can be combined with the selected tower"""
@@ -57,7 +58,9 @@ class CombineManager:
                 if new_tower:
                     # Remove old towers
                     for old_tower in self.combining_towers:
-                        self.towers.remove(old_tower)
+                        if old_tower in self.towers:
+                            self.towers.remove(old_tower)
+                    # Add new tower (must be done by the caller since we return the new tower)
                     self.towers.append(new_tower)
                     
                     # Reset combining state

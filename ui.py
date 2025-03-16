@@ -27,6 +27,74 @@ class Button:
                 return True
         return False
 
+class Tooltip:
+    """
+    A class for displaying hoverable tooltips in the game.
+    Tooltips can display information about towers, resources, or any other game element.
+    """
+    def __init__(self):
+        self.font = get_font(FONT_SIZE_SMALL)
+        self.visible = False
+        self.content = []
+        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.background_color = (40, 40, 50, 230)  # Dark blue with alpha
+        self.text_color = COLOR_TEXT
+        self.padding = 10
+        self.max_width = 250
+        self.line_height = FONT_SIZE_SMALL + 4
+        
+    def set_content(self, content):
+        """
+        Set the tooltip content.
+        Content can be a single string or a list of strings for multiple lines.
+        """
+        if isinstance(content, str):
+            self.content = [content]
+        else:
+            self.content = content
+        
+        # Calculate tooltip size based on content
+        width = 0
+        for line in self.content:
+            text_surface = self.font.render(line, True, self.text_color)
+            width = max(width, text_surface.get_width())
+        
+        # Cap width and calculate height
+        width = min(width, self.max_width) + self.padding * 2
+        height = len(self.content) * self.line_height + self.padding * 2
+        
+        self.rect.width = width
+        self.rect.height = height
+        
+    def show(self, x, y):
+        """Show the tooltip at the specified position"""
+        self.visible = True
+        
+        # Position tooltip - ensure it stays within screen bounds
+        self.rect.x = min(x, WINDOW_WIDTH - self.rect.width)
+        self.rect.y = min(y, WINDOW_HEIGHT - self.rect.height)
+        
+    def hide(self):
+        """Hide the tooltip"""
+        self.visible = False
+        
+    def draw(self, surface):
+        """Draw the tooltip if visible"""
+        if not self.visible or not self.content:
+            return
+            
+        # Create a transparent surface for the background
+        tooltip_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
+        tooltip_surface.fill(self.background_color)
+        
+        # Draw each line of text
+        for i, line in enumerate(self.content):
+            text_surface = self.font.render(line, True, self.text_color)
+            tooltip_surface.blit(text_surface, (self.padding, self.padding + i * self.line_height))
+        
+        # Draw the tooltip surface on the main surface
+        surface.blit(tooltip_surface, (self.rect.x, self.rect.y))
+
 class ResourceDisplay:
     def __init__(self, x, y, font_size=FONT_SIZE_SMALL):
         self.x = x

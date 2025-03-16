@@ -2,6 +2,7 @@ import pygame
 import random
 from config import *
 from ui import Button, Tooltip
+from tooltip import get_tower_tooltip_text
 
 class Shop:
     def __init__(self, biome):

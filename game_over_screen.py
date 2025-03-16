@@ -31,6 +31,14 @@ class GameOverScreen:
         self.message_alpha = 0
         self.alpha_direction = -1
         
+        # Create next level button for victory screen
+        if self.is_victory:
+            self.next_level_button = Button(
+                pygame.Rect(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 - 20, 200, 50),
+                "Next Level",
+                color=(0, 150, 0)
+            )
+    
     def update(self, dt):
         """Update animations and effects"""
         # Update flashing effect
@@ -48,6 +56,9 @@ class GameOverScreen:
     
     def handle_input(self, event):
         """Handle input events"""
+        if self.is_victory:
+            if self.next_level_button.handle_event(event):
+                return 'next_level'
         if self.restart_button.handle_event(event):
             return 'restart'
         elif self.menu_button.handle_event(event):
@@ -109,6 +120,8 @@ class GameOverScreen:
             y_offset += 30
             
         # Draw buttons
+        if self.is_victory:
+            self.next_level_button.draw(surface)
         self.restart_button.draw(surface)
         self.menu_button.draw(surface)
         
@@ -133,6 +146,7 @@ def run_game_over_screen(screen, is_victory=False, statistics=None):
     Returns:
         'restart' - Player wants to restart the level
         'menu' - Player wants to return to the main menu
+        'next_level' - Player wants to proceed to the next level
     """
     game_over = GameOverScreen(is_victory, statistics)
     clock = pygame.time.Clock()

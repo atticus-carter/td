@@ -23,6 +23,7 @@ CELL_HEIGHT = WINDOW_HEIGHT // GRID_ROWS
 
 # Colors
 COLOR_BG = (10, 20, 40)
+COLOR_BACKGROUND = (10, 20, 40)  # Added this line to fix the reference in level_select.py
 COLOR_UI_BG = (20, 30, 50)
 COLOR_TEXT = (200, 200, 200)
 COLOR_BUTTON = (40, 60, 100)
