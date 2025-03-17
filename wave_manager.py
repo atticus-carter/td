@@ -9,6 +9,7 @@ class WaveDefinition:
         self.duration = duration
         self.buildup_time = buildup_time
         self.enemy_groups = []
+        self.pattern_type = None
         
     def add_enemy_group(self, enemy_type, count, delay_between=1.0, start_delay=0):
         """Add a group of enemies to spawn in this wave"""
@@ -36,183 +37,129 @@ class WaveManager:
         
     def setup_waves(self):
         """Set up wave definitions based on level number"""
-        # Tutorial level (1)
-        if self.level_number == 1:
-            self._setup_tutorial_waves()
-        # Early levels (2-5)
-        elif self.level_number <= 5:
+        # Early game (levels 1-5)
+        if self.level_number <= 5:
             self._setup_early_game_waves()
-        # Mid levels (6-10)
+        # Mid game (levels 6-10)
         elif self.level_number <= 10:
             self._setup_mid_game_waves()
-        # Late levels (11-15)
-        elif self.level_number <= 15:
-            self._setup_late_game_waves()
-        # End game levels (16-20)
+        # Late game (levels 11+)
         else:
-            self._setup_end_game_waves()
+            self._setup_late_game_waves()
             
-    def _setup_tutorial_waves(self):
-        """Set up tutorial waves with very gradual difficulty"""
-        # Wave 1: Few scattered scouts
-        w1 = WaveDefinition(1, duration=40, buildup_time=20)
-        w1.add_enemy_group('ScoutDrone', 3, delay_between=3, start_delay=5)
-        self.waves.append(w1)
-        
-        # Wave 2: More scouts, introduced slowly
-        w2 = WaveDefinition(2, duration=40, buildup_time=15)
-        w2.add_enemy_group('ScoutDrone', 5, delay_between=2, start_delay=3)
-        self.waves.append(w2)
-        
-        # Wave 3: Scouts and first Exosuit
-        w3 = WaveDefinition(3, duration=40, buildup_time=15)
-        w3.add_enemy_group('ScoutDrone', 4, delay_between=2, start_delay=2)
-        w3.add_enemy_group('ExosuitDiver', 1, delay_between=1, start_delay=15)
-        self.waves.append(w3)
-        
-        # Wave 4: Mixed wave
-        w4 = WaveDefinition(4, duration=45, buildup_time=15)
-        w4.add_enemy_group('ScoutDrone', 6, delay_between=1.5, start_delay=2)
-        w4.add_enemy_group('ExosuitDiver', 2, delay_between=8, start_delay=10)
-        self.waves.append(w4)
-        
-        # Wave 5: Final tutorial wave with all basic enemies
-        w5 = WaveDefinition(5, duration=50, buildup_time=20)
-        w5.add_enemy_group('ScoutDrone', 8, delay_between=1.5, start_delay=2)
-        w5.add_enemy_group('ExosuitDiver', 3, delay_between=6, start_delay=8)
-        w5.add_enemy_group('DrillingMech', 1, delay_between=1, start_delay=25)
-        self.waves.append(w5)
-    
     def _setup_early_game_waves(self):
-        """Set up waves for early game levels (2-5)"""
+        """Set up early game waves focusing on basic enemies and simple patterns"""
         num_waves = 5
-        base_buildup = 15  # Base buildup time
+        patterns = WAVE_PATTERNS['early_game']
         
         for wave in range(num_waves):
             wave_num = wave + 1
             duration = 35 + wave * 5
-            buildup = max(10, base_buildup - wave)
+            buildup = max(12, 15 - wave)
             
             wave_def = WaveDefinition(wave_num, duration, buildup)
             
-            # Add scout drones
-            scout_count = 4 + wave * 2
-            wave_def.add_enemy_group('ScoutDrone', scout_count, 
-                                   delay_between=1.5 - wave * 0.2,
-                                   start_delay=2)
-            
-            # Add exosuit divers from wave 2
-            if wave >= 1:
-                exosuit_count = 1 + (wave - 1)
-                wave_def.add_enemy_group('ExosuitDiver', exosuit_count,
-                                       delay_between=4,
-                                       start_delay=10)
-            
-            # Add drilling mech in final wave
-            if wave == num_waves - 1:
-                wave_def.add_enemy_group('DrillingMech', 2,
-                                       delay_between=8,
-                                       start_delay=20)
+            # Mix of basic patterns
+            if wave == 0:
+                # Tutorial wave - simple scouts
+                wave_def.add_enemy_group('ScoutDrone', 3, 2.0, 3)
+            elif wave == 1:
+                # Resource raid pattern
+                self._add_pattern(wave_def, patterns['resource_raid'], delay=1.5)
+            elif wave == 2:
+                # Mixed wave with scouts and exosuits
+                wave_def.add_enemy_group('ScoutDrone', 4, 1.5, 2)
+                wave_def.add_enemy_group('ExosuitDiver', 2, 3.0, 8)
+            elif wave == 3:
+                # Drilling team pattern
+                self._add_pattern(wave_def, patterns['drilling_team'], delay=2.0)
+            elif wave == 4:
+                # Final early game wave - all basic types
+                self._add_pattern(wave_def, patterns['basic_rush'], delay=1.2)
+                wave_def.add_enemy_group('DrillingMech', 1, 1.0, 15)
             
             self.waves.append(wave_def)
-    
+            
     def _setup_mid_game_waves(self):
-        """Set up waves for mid game levels (6-10)"""
+        """Set up mid-game waves with advanced enemies and coordinated attacks"""
         num_waves = 5
+        patterns = WAVE_PATTERNS['mid_game']
         
         for wave in range(num_waves):
             wave_num = wave + 1
             duration = 40 + wave * 5
-            buildup = max(8, 12 - wave)
+            buildup = max(10, 12 - wave)
             
             wave_def = WaveDefinition(wave_num, duration, buildup)
             
-            # Multiple enemy groups per wave
-            scout_count = 6 + wave * 2
-            wave_def.add_enemy_group('ScoutDrone', scout_count,
-                                   delay_between=1.2 - wave * 0.1,
-                                   start_delay=2)
-            
-            exosuit_count = 2 + wave
-            wave_def.add_enemy_group('ExosuitDiver', exosuit_count,
-                                   delay_between=3,
-                                   start_delay=8)
-            
-            drilling_count = 1 + wave // 2
-            wave_def.add_enemy_group('DrillingMech', drilling_count,
-                                   delay_between=6,
-                                   start_delay=15)
-            
-            # Boss in final wave
-            if wave == num_waves - 1:
-                wave_def.add_enemy_group('CorporateSubmarine', 1,
-                                       delay_between=1,
-                                       start_delay=25)
+            # More complex pattern combinations
+            if wave == 0:
+                # Tech squad intro
+                self._add_pattern(wave_def, patterns['tech_squad'], delay=2.0)
+            elif wave == 1:
+                # Collection team with support
+                self._add_pattern(wave_def, patterns['collection_team'], delay=1.8)
+                wave_def.add_enemy_group('ROV', 2, 2.5, 12)
+            elif wave == 2:
+                # Heavy assault wave
+                self._add_pattern(wave_def, patterns['heavy_assault'], delay=2.5)
+            elif wave == 3:
+                # Mixed tech and collection
+                wave_def.add_enemy_group('MiningLaser', 2, 2.0, 2)
+                wave_def.add_enemy_group('CollectorCrab', 2, 2.0, 8)
+                wave_def.add_enemy_group('SonicDisruptor', 1, 1.0, 15)
+            elif wave == 4:
+                # All mid-game types finale
+                wave_def.add_enemy_group('SeabedCrawler', 1, 1.0, 2)
+                wave_def.add_enemy_group('PressureCrusher', 2, 3.0, 8)
+                wave_def.add_enemy_group('VortexGenerator', 2, 2.0, 15)
+                wave_def.add_enemy_group('MiningLaser', 2, 1.5, 20)
             
             self.waves.append(wave_def)
-    
+            
     def _setup_late_game_waves(self):
-        """Set up waves for late game levels (11-15)"""
+        """Set up late-game waves with elite enemies and boss encounters"""
         num_waves = 5
+        patterns = WAVE_PATTERNS['late_game']
         
         for wave in range(num_waves):
             wave_num = wave + 1
-            wave_def = WaveDefinition(wave_num, 45 + wave * 5, max(6, 10 - wave))
+            duration = 45 + wave * 5
+            buildup = max(8, 10 - wave)
             
-            # Multiple coordinated attack groups
-            # Fast scout group
-            wave_def.add_enemy_group('ScoutDrone', 8 + wave * 2,
-                                   delay_between=0.8,
-                                   start_delay=2)
+            wave_def = WaveDefinition(wave_num, duration, buildup)
             
-            # Exosuit squad
-            wave_def.add_enemy_group('ExosuitDiver', 3 + wave,
-                                   delay_between=2,
-                                   start_delay=10)
-            
-            # Heavy assault group
-            wave_def.add_enemy_group('DrillingMech', 2 + wave // 2,
-                                   delay_between=4,
-                                   start_delay=15)
-            
-            # Mini-boss every other wave
-            if wave % 2 == 1:
-                wave_def.add_enemy_group('CorporateSubmarine', 1,
-                                       start_delay=20)
-            
-            self.waves.append(wave_def)
-    
-    def _setup_end_game_waves(self):
-        """Set up waves for end game levels (16-20)"""
-        num_waves = 5
-        
-        for wave in range(num_waves):
-            wave_num = wave + 1
-            wave_def = WaveDefinition(wave_num, 50 + wave * 5, max(5, 8 - wave))
-            
-            # Continuous scout pressure
-            wave_def.add_enemy_group('ScoutDrone', 10 + wave * 3,
-                                   delay_between=0.6,
-                                   start_delay=2)
-            
-            # Strong exosuit presence
-            wave_def.add_enemy_group('ExosuitDiver', 4 + wave,
-                                   delay_between=1.5,
-                                   start_delay=8)
-            
-            # Heavy assault
-            wave_def.add_enemy_group('DrillingMech', 2 + wave,
-                                   delay_between=3,
-                                   start_delay=12)
-            
-            # Multiple bosses in later waves
-            if wave >= 3:
-                wave_def.add_enemy_group('CorporateSubmarine',
-                                       1 + (wave - 3),
-                                       delay_between=15,
-                                       start_delay=20)
+            # Complex patterns with elite units
+            if wave == 0:
+                # Elite force intro
+                self._add_pattern(wave_def, patterns['elite_force'], delay=2.5)
+            elif wave == 1:
+                # Swarm attack with support
+                self._add_pattern(wave_def, patterns['swarm_attack'], delay=1.5)
+                wave_def.add_enemy_group('VortexGenerator', 2, 3.0, 15)
+            elif wave == 2:
+                # Mixed elite wave
+                wave_def.add_enemy_group('BionicSquid', 2, 3.0, 2)
+                wave_def.add_enemy_group('PressureCrusher', 2, 2.5, 10)
+                wave_def.add_enemy_group('NaniteSwarm', 3, 1.5, 18)
+            elif wave == 3:
+                # Heavy elite assault
+                wave_def.add_enemy_group('SeabedCrawler', 2, 3.0, 2)
+                wave_def.add_enemy_group('BionicSquid', 2, 2.5, 12)
+                wave_def.add_enemy_group('SonicDisruptor', 3, 1.5, 20)
+            elif wave == 4:
+                # Final boss wave
+                self._add_pattern(wave_def, patterns['boss_raid'], delay=3.0)
+                wave_def.add_enemy_group('NaniteSwarm', 4, 1.0, 25)
             
             self.waves.append(wave_def)
+            
+    def _add_pattern(self, wave_def, enemy_types, delay=2.0):
+        """Add a predefined pattern of enemies to a wave"""
+        start_delay = 2.0
+        for enemy_type in enemy_types:
+            wave_def.add_enemy_group(enemy_type, 1, delay, start_delay)
+            start_delay += delay
     
     def update(self, dt, enemies):
         """Update wave state and spawn enemies"""
@@ -237,7 +184,7 @@ class WaveManager:
             if group['spawned'] < group['count']:
                 group['timer'] -= dt
                 if group['timer'] <= 0:
-                    # Spawn enemy
+                    # Spawn enemy with random vertical position
                     y = random.randint(0, GRID_ROWS - 1)
                     enemies.append(Enemy(y, group['enemy_type']))
                     group['spawned'] += 1

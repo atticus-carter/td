@@ -21,6 +21,11 @@ def main():
     
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))  # Use constants from config
     pygame.display.set_caption("Mars Tower Defense")
+    
+    # Initialize tower images after display is set up
+    from tower import initialize_tower_images
+    initialize_tower_images()
+    
     clock = pygame.time.Clock()
     
     # Initialize screens

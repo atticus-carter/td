@@ -1,13 +1,17 @@
+from typing import Dict, List, Optional
 import pygame
-import random
 from config import *
-from tower import *
+from base_types import TowerType, BaseTower
+from tower import Tower, ResourceTower, ProjectileTower, TankTower, EffectTower, Projectile
 from enemy import Enemy
-from tooltip import Tooltip, get_tower_tooltip_text, get_enemy_tooltip_text
+from resource_orb import ResourceOrb
 from shop import Shop
+from ui import (ResourceDisplay, WaveInfoDisplay, Button, Tooltip, GridDisplay, 
+               PauseOverlay, PauseScreen, TowerPreview)
 from wave_manager import WaveManager
 from combine import CombineManager
-from ui import Button, ResourceDisplay, WaveInfoDisplay, PauseOverlay, GridDisplay, TowerPreview, PauseScreen
+from tooltip import get_tower_tooltip_text, get_enemy_tooltip_text
+from auto_collect import check_auto_collect
 
 class GameplayManager:
     def __init__(self, biome, level):
@@ -75,6 +79,8 @@ class GameplayManager:
         self.sell_bin_rect = pygame.Rect(10, WINDOW_HEIGHT - 90, 80, 80)
         self.hovering_sell_bin = False
         
+        self.resource_orbs = []  # Add list to track active resource orbs
+        
     def get_tower_sell_value(self, tower):
         """Calculate refund value for selling a tower (50% of purchase cost)"""
         tower_costs = {}
@@ -127,6 +133,14 @@ class GameplayManager:
         return tower
 
     def handle_input(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if self.combine_manager.is_combining:
+                    self.combine_manager.cancel_combine()
+                else:
+                    self.paused = not self.paused
+                    return
+        
         if self.paused:
             result = self.pause_screen.handle_input(event)
             if result == 0:  # Resume
@@ -141,6 +155,15 @@ class GameplayManager:
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
+            
+            # First check for resource orb clicks
+            for orb in self.resource_orbs[:]:  # Use slice to avoid modification during iteration
+                if orb.contains_point(mouse_x, mouse_y) and orb.active:
+                    # Collect the resource
+                    self.resources[orb.resource_type] += orb.amount
+                    orb.active = False
+                    self.resource_orbs.remove(orb)
+                    return  # Don't process other clicks if we collected a resource
             
             # Handle pause button
             if self.pause_button.handle_event(event):
@@ -261,7 +284,7 @@ class GameplayManager:
         if self.paused:
             # Only handle pause button when paused
             mouse_pos = pygame.mouse.get_pos()
-            self.is_pause_hover = self.pause_button.collidepoint(mouse_pos)
+            self.is_pause_hover = self.pause_button.rect.collidepoint(mouse_pos)
             return GameState.GAMEPLAY
             
         # Update wave state and spawn enemies
@@ -275,13 +298,8 @@ class GameplayManager:
             result = tower.update(dt, self)
             
             if isinstance(tower, ResourceTower) and result:
-                for resource_type, amount in result:
-                    if resource_type == 'all':
-                        for res in self.resources:
-                            self.resources[res] += amount
-                    else:
-                        self.resources[resource_type] += amount
-                    
+                # Add any spawned resource orbs
+                self.resource_orbs.extend(result)
             elif isinstance(tower, ProjectileTower) and result:
                 self.projectiles.append(Projectile(
                     result['x'], result['y'],
@@ -291,6 +309,20 @@ class GameplayManager:
             # Remove destroyed towers
             if tower.health <= 0:
                 self.towers.remove(tower)
+                
+        # Update resource orbs and check for auto-collection
+        for orb in self.resource_orbs[:]:
+            if not orb.update(dt):
+                self.resource_orbs.remove(orb)
+                continue
+                
+            # Check for auto-collection by appropriate towers
+            for tower in self.towers:
+                if check_auto_collect(orb, tower):
+                    self.resources[orb.resource_type] += orb.amount
+                    orb.active = False
+                    self.resource_orbs.remove(orb)
+                    break
                 
         # Update enemies
         for enemy in self.enemies[:]:
@@ -406,6 +438,10 @@ class GameplayManager:
         # Draw combine manager elements
         self.combine_manager.draw_combine_preview(frame_surface)
         self.combine_manager.draw_combine_instructions(frame_surface, self.pause_font)
+        
+        # Draw resource orbs before enemies so they appear under them
+        for orb in self.resource_orbs:
+            orb.draw(frame_surface)
 
         # Draw enemies and projectiles
         for enemy in self.enemies:

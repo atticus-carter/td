@@ -19,13 +19,26 @@ class Shop:
         self.free_refresh_index = 0  # Index into FREE_REFRESH_THRESHOLDS
         
         # Create refresh button using Button component
+        refresh_y = WINDOW_HEIGHT - 120  # Move refresh section up for more space
         self.refresh_button = Button(
-            pygame.Rect(WINDOW_WIDTH - SIDEBAR_WIDTH + 10, WINDOW_HEIGHT - 60, 180, 40),
-            "Refresh"
+            pygame.Rect(WINDOW_WIDTH - SIDEBAR_WIDTH + 10, refresh_y, 180, 50),
+            "Refresh Shop"
+        )
+        
+        # Progress bar rect - below refresh button
+        self.progress_rect = pygame.Rect(
+            WINDOW_WIDTH - SIDEBAR_WIDTH + 10,
+            refresh_y + 60,
+            180,
+            6  # Slightly thicker progress bar
         )
         
         # Tooltip for shop items
         self.tooltip = Tooltip()
+        
+        # Enhanced refresh info tooltips
+        self.refresh_tooltip = Tooltip()
+        self.show_refresh_tooltip = False
         
     def _get_native_resource(self):
         """Determine native resource based on biome"""
@@ -221,26 +234,66 @@ class Shop:
                 text_rect = text.get_rect(center=slot['rect'].center)
                 surface.blit(text, text_rect)
         
+        # Draw refresh section with improved spacing
+        refresh_section_bg = pygame.Rect(
+            WINDOW_WIDTH - SIDEBAR_WIDTH,
+            self.refresh_button.rect.y - 10,
+            SIDEBAR_WIDTH,
+            120
+        )
+        pygame.draw.rect(surface, (30, 40, 60), refresh_section_bg)  # Darker background for refresh section
+        
         # Draw refresh button
         self.refresh_button.draw(surface)
         
-        # Show progress to next free refresh if available
+        # Get refresh status text and color
+        refresh_status, status_color = self.get_refresh_status(resources)
+        
+        # Draw refresh status text with better positioning
+        status_text = font.render(refresh_status, True, status_color)
+        status_rect = status_text.get_rect(
+            centerx=self.refresh_button.rect.centerx,
+            top=self.refresh_button.rect.bottom + 5
+        )
+        surface.blit(status_text, status_rect)
+        
+        # Draw kills progress if working towards free refresh
         if self.free_refresh_index < len(FREE_REFRESH_THRESHOLDS):
             next_threshold = FREE_REFRESH_THRESHOLDS[self.free_refresh_index]
-            kills_needed = next_threshold - self.enemy_kills
-            if kills_needed <= 5:  # Show countdown when close
-                refresh_text = f"Free in {kills_needed}"
-            else:
-                refresh_text = f"Refresh ({self.refresh_cost})"
-        else:
-            refresh_text = f"Refresh ({self.refresh_cost})"
             
-        refresh_text = font.render(refresh_text, True, COLOR_TEXT)
-        refresh_rect = refresh_text.get_rect(center=self.refresh_button.rect.center)
-        surface.blit(refresh_text, refresh_rect)
+            # Draw progress bar background
+            pygame.draw.rect(surface, (60, 60, 60), self.progress_rect)
+            
+            # Draw progress bar fill
+            progress = min(1.0, self.enemy_kills / next_threshold)
+            fill_rect = pygame.Rect(
+                self.progress_rect.x,
+                self.progress_rect.y,
+                self.progress_rect.width * progress,
+                self.progress_rect.height
+            )
+            pygame.draw.rect(surface, (0, 255, 0), fill_rect)
+            
+            # Draw kills progress text with better positioning
+            kills_text = f"{self.enemy_kills}/{next_threshold} kills"
+            kills_surface = font.render(kills_text, True, COLOR_TEXT)
+            kills_rect = kills_surface.get_rect(
+                centerx=self.refresh_button.rect.centerx,
+                top=self.progress_rect.bottom + 5
+            )
+            surface.blit(kills_surface, kills_rect)
+        
+        # Show tooltip with detailed refresh information when hovering
+        mouse_pos = pygame.mouse.get_pos()
+        if self.refresh_button.rect.collidepoint(mouse_pos):
+            tooltip_text = self.get_refresh_tooltip_text(resources)
+            self.refresh_tooltip.set_content(tooltip_text)
+            self.refresh_tooltip.show(mouse_pos[0] + 15, mouse_pos[1] + 15)
+            self.refresh_tooltip.draw(surface)
+        else:
+            self.refresh_tooltip.hide()
         
         # Draw tooltip if hovering over a slot
-        mouse_pos = pygame.mouse.get_pos()
         for slot in self.slots:
             if slot['rect'].collidepoint(mouse_pos) and slot['tower']:
                 tower_name, star_level = slot['tower']
@@ -251,3 +304,40 @@ class Shop:
                 break
         else:
             self.tooltip.hide()
+            
+    def get_refresh_status(self, resources):
+        """Get the current refresh button status text and color"""
+        if self.free_refresh_index < len(FREE_REFRESH_THRESHOLDS):
+            next_threshold = FREE_REFRESH_THRESHOLDS[self.free_refresh_index]
+            kills_needed = next_threshold - self.enemy_kills
+            if kills_needed <= 5:
+                return f"FREE in {kills_needed}!", (0, 255, 0)  # Shortened for better fit
+        
+        # Check if player can afford refresh
+        can_afford = self.native_resource and resources[self.native_resource] >= self.refresh_cost
+        if can_afford:
+            return f"Cost: {self.refresh_cost}", (255, 255, 255)  # Shortened for better fit
+        else:
+            return f"Need {self.refresh_cost}", (255, 100, 100)  # Shortened for better fit
+            
+    def get_refresh_tooltip_text(self, resources):
+        """Get detailed tooltip text for the refresh button"""
+        tooltip_lines = ["Shop Refresh Info:"]
+        
+        # Add free refresh information
+        if self.free_refresh_index < len(FREE_REFRESH_THRESHOLDS):
+            next_threshold = FREE_REFRESH_THRESHOLDS[self.free_refresh_index]
+            kills_needed = next_threshold - self.enemy_kills
+            tooltip_lines.append(f"Next free refresh: {kills_needed} more kills")
+            tooltip_lines.append(f"Current kills: {self.enemy_kills}/{next_threshold}")
+        else:
+            tooltip_lines.append("All free refreshes used")
+            
+        # Add paid refresh information
+        tooltip_lines.append("")
+        tooltip_lines.append(f"Manual refresh cost: {self.refresh_cost} {self.native_resource}")
+        if self.native_resource:
+            current = resources.get(self.native_resource, 0)
+            tooltip_lines.append(f"You have: {current} {self.native_resource}")
+            
+        return tooltip_lines

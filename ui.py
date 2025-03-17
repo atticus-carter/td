@@ -106,7 +106,7 @@ class ResourceDisplay:
         y_offset = self.y
         for resource, amount in resources.items():
             text = f"{resource}: {amount}"
-            resource_text = self.font.render(text, True, COLOR_TEXT)
+            resource_text = self.font.render(text, True, RESOURCE_COLORS.get(resource, COLOR_TEXT))
             surface.blit(resource_text, (self.x, y_offset))
             y_offset += self.spacing
 

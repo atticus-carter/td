@@ -1,4 +1,6 @@
+import pygame
 from config import *
+from tower import ResourceTower
 from ui import StarDisplay
 
 class CombineManager:
@@ -15,7 +17,8 @@ class CombineManager:
             if (tower != selected_tower and 
                 tower.name == selected_tower.name and 
                 tower.stars == selected_tower.stars and
-                tower.stars < 3):  # Prevent combining 3-star towers
+                tower.stars < 3 and  # Prevent combining 3-star towers
+                isinstance(tower, type(selected_tower))):  # Ensure same tower type
                 same_towers.append(tower)
         return same_towers
 

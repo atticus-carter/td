@@ -86,28 +86,60 @@ def get_tower_tooltip_text(tower_name):
             "Black Smoker",
             "Type: Resource Generator",
             "Generates sulfides over time",
-            "Cost: 50 sulfides"
+            "Cost: 50 sulfides",
+            "",
+            "Power: Hydro Pressure",
+            "Creates pressure waves that boost nearby",
+            "resource generation by 50/100/150%",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% resource generation per star",
+            "+50% pressure wave boost per star"
         ],
         'RiftiaTubeWorm': [
             "Riftia Tube Worm",
             "Type: Projectile Shooter",
             "Fires projectiles at enemies",
             "Damage: 20, Range: 400px",
-            "Cost: 100 sulfides"
+            "Cost: 100 sulfides",
+            "",
+            "Power: Venom Shot",
+            "Applies poison damage over time",
+            "30/60/90% chance, 5/10/15 damage per tick",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% damage per star",
+            "+30% poison chance per star"
         ],
         'SquatLobster': [
             "Squat Lobster",
             "Type: Tank",
-            "Blocks enemy path with high health",
-            "Health: 300",
-            "Cost: 150 sulfides"
+            "Blocks enemy path and deals melee damage",
+            "Health: 350, Melee Damage: 15",
+            "Attack Speed: 1.0s",
+            "Cost: 75 sulfides",
+            "",
+            "Power: Regeneration",
+            "Regenerates 5/10/15 health per second",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% health per star",
+            "+50% melee damage per star"
         ],
         'BlueCilliates': [
             "Blue Cilliates",
             "Type: Area Effect",
             "Damages enemies that pass nearby",
             "Damage: 5 per second, Radius: 1 cell",
-            "Cost: 75 sulfides"
+            "Cost: 75 sulfides",
+            "",
+            "Power: Chain Reaction",
+            "Damage spreads to nearby enemies",
+            "30/60/90% spread damage",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% area damage per star",
+            "+30% spread damage per star"
         ],
         
         # Coldseep towers
@@ -115,28 +147,59 @@ def get_tower_tooltip_text(tower_name):
             "Bubble Plume",
             "Type: Resource Generator",
             "Generates methane over time",
-            "Cost: 50 methane"
+            "Cost: 50 methane",
+            "",
+            "Power: Methane Eruption",
+            "Releases explosive methane bursts",
+            "20/40/60 explosion damage",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% resource generation per star",
+            "+50% explosion damage per star"
         ],
         'Rockfish': [
             "Rockfish",
             "Type: Projectile Shooter",
             "Fires projectiles at enemies",
             "Damage: 20, Range: 400px",
-            "Cost: 100 methane"
+            "Cost: 100 methane",
+            "",
+            "Power: Sonic Pulse",
+            "Releases stunning sonic waves",
+            "1/2/3s stun duration",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% damage per star",
+            "+50% stun duration per star"
         ],
         'SpiderCrab': [
             "Spider Crab",
             "Type: Tank",
-            "Blocks enemy path with high health",
-            "Health: 300",
-            "Cost: 150 methane"
+            "Blocks enemy path and deals melee damage",
+            "Health: 400, Melee Damage: 20",
+            "Attack Speed: 1.0s",
+            "Cost: 85 methane",
+            "",
+            "Power: Spike Plating",
+            "Reflects 20/40/60% damage back",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% health per star",
+            "+50% melee damage per star"
         ],
         'VesicomyidaeClams': [
             "Vesicomyidae Clams",
             "Type: Area Effect",
             "Damages enemies that pass nearby",
             "Damage: 5 per second, Radius: 1 cell",
-            "Cost: 75 methane"
+            "Cost: 75 methane",
+            "",
+            "Power: Filter Feeding",
+            "Converts 10/20/30% of damage to resources",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% area damage per star",
+            "+10% resource conversion per star"
         ],
         
         # Brine Pool towers
@@ -144,28 +207,59 @@ def get_tower_tooltip_text(tower_name):
             "Brine Pool",
             "Type: Resource Generator",
             "Generates salt over time",
-            "Cost: 50 salt"
+            "Cost: 50 salt",
+            "",
+            "Power: Brine Spray",
+            "Sprays corrosive brine that slows",
+            "30/60/90% slow effect",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% resource generation per star",
+            "+30% slow effect per star"
         ],
         'Hagfish': [
             "Hagfish",
             "Type: Projectile Shooter",
             "Fires projectiles at enemies",
             "Damage: 20, Range: 400px",
-            "Cost: 100 salt"
+            "Cost: 100 salt",
+            "",
+            "Power: Electric Shock",
+            "Chain lightning between 2/3/4 enemies",
+            "15/30/45 chain damage",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% damage per star",
+            "+1 chain target per star"
         ],
         'Chimaera': [
             "Chimaera",
             "Type: Tank",
-            "Blocks enemy path with high health",
-            "Health: 300",
-            "Cost: 150 salt"
+            "Blocks enemy path and deals melee damage",
+            "Health: 300, Melee Damage: 25",
+            "Attack Speed: 1.0s",
+            "Cost: 80 salt",
+            "",
+            "Power: Berserk Mode",
+            "20/40/60% attack speed when damaged",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% health per star",
+            "+50% melee damage per star"
         ],
         'MuscleBed': [
             "Muscle Bed",
             "Type: Area Effect",
             "Damages enemies that pass nearby",
             "Damage: 5 per second, Radius: 1 cell",
-            "Cost: 75 salt"
+            "Cost: 75 salt",
+            "",
+            "Power: Muscle Pulse",
+            "Pushes enemies back with 50/100/150 force",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% area damage per star",
+            "+50% push force per star"
         ],
         
         # Whalefall towers
@@ -173,28 +267,60 @@ def get_tower_tooltip_text(tower_name):
             "Osedax Worm",
             "Type: Resource Generator",
             "Generates lipids over time",
-            "Cost: 50 lipids"
+            "Cost: 50 lipids",
+            "",
+            "Power: Lipid Siphon",
+            "Drains resources from enemies",
+            "2/4/6 drain amount",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% resource generation per star",
+            "+2 resource drain per star"
         ],
         'Muusoctopus': [
             "Muusoctopus",
             "Type: Projectile Shooter",
             "Fires projectiles at enemies",
             "Damage: 20, Range: 400px",
-            "Cost: 100 lipids"
+            "Cost: 100 lipids",
+            "",
+            "Power: Ink Cloud",
+            "Creates blinding ink clouds",
+            "4/8/12s duration, slows enemies",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% damage per star",
+            "+4s ink cloud duration per star"
         ],
         'SleeperShark': [
             "Sleeper Shark",
             "Type: Tank",
-            "Blocks enemy path with high health",
-            "Health: 300",
-            "Cost: 150 lipids"
+            "Blocks enemy path and deals melee damage",
+            "Health: 375, Melee Damage: 18",
+            "Attack Speed: 1.0s",
+            "Cost: 80 lipids",
+            "",
+            "Power: Frenzy Bite",
+            "1/2/3x attack speed burst",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% health per star",
+            "+50% melee damage per star"
         ],
         'Beggiatoa': [
             "Beggiatoa",
             "Type: Area Effect",
             "Damages enemies that pass nearby",
             "Damage: 5 per second, Radius: 1 cell",
-            "Cost: 75 lipids"
+            "Cost: 75 lipids",
+            "",
+            "Power: Bacterial Bloom",
+            "Creates damaging bacterial colonies",
+            "50% base damage, 3/6/9s duration",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% area damage per star",
+            "+3s colony duration per star"
         ],
         
         # Rare towers
@@ -203,28 +329,59 @@ def get_tower_tooltip_text(tower_name):
             "Type: Rare Projectile",
             "Powerful shooter with extended range",
             "Damage: 30, Range: 500px",
-            "Cost: 40 of each resource"
+            "Cost: 40 of each resource",
+            "",
+            "Power: Tentacle Sweep",
+            "Sweeping tentacle attack",
+            "50/100/150 sweep damage",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% damage per star",
+            "+50% sweep damage per star"
         ],
         'ColossalSquid': [
             "Colossal Squid",
             "Type: Rare Tank",
-            "Extremely durable blocking tower",
-            "Health: 500",
-            "Cost: 50 of each resource"
+            "Extremely durable with high melee damage",
+            "Health: 600, Melee Damage: 25",
+            "Attack Speed: 0.8s",
+            "Cost: 30 of each resource",
+            "",
+            "Power: Deepsea King",
+            "Buffs nearby towers by 20/40/60%",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% health per star",
+            "+50% buff effect per star"
         ],
         'DumboOctopus': [
             "Dumbo Octopus",
             "Type: Rare Area Effect",
             "Enhanced area damage tower",
             "Damage: 15 per second, Radius: 2 cells",
-            "Cost: 35 of each resource"
+            "Cost: 35 of each resource",
+            "",
+            "Power: Oxygen Burst",
+            "Heals and boosts nearby towers",
+            "20/40/60 heal, 2/4/6 resource bonus",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% area damage per star",
+            "+20 healing per star"
         ],
         'Nautilus': [
             "Nautilus",
             "Type: Rare Resource Generator",
             "Generates all resource types",
             "Output: 5 of each resource per second",
-            "Cost: 60 of each resource"
+            "Cost: 60 of each resource",
+            "",
+            "Power: Resource Nexus",
+            "Links resource towers, shares 20/40/60%",
+            "",
+            "⭐ Star Upgrades:",
+            "+50% resource generation per star",
+            "+20% resource sharing per star"
         ]
     }
     
@@ -237,30 +394,100 @@ def get_enemy_tooltip_text(enemy_type):
     Return tooltip text for a specific enemy type.
     """
     tooltips = {
+        # Basic Units
         'ScoutDrone': [
             "Scout Drone",
-            "Fast but fragile reconnaissance unit",
-            "Health: 50, Speed: Fast",
-            "Damage: 10"
+            "Fast recon unit that reveals tower positions",
+            "Can temporarily boost its speed",
+            "Low health but quick and agile"
         ],
         'ExosuitDiver': [
             "Exosuit Diver",
-            "Medium armored human diver",
-            "Health: 150, Speed: Medium",
-            "Damage: 20"
+            "Armored deep-sea mining personnel",
+            "Generates protective shields",
+            "Can repair nearby units"
         ],
         'DrillingMech': [
             "Drilling Mech",
-            "Heavy mining machine",
-            "Health: 300, Speed: Slow",
-            "Damage: 40"
+            "Heavy mining mech with reinforced plating",
+            "Deals extra damage to structures",
+            "High health and armor"
         ],
+        
+        # Advanced Units
+        'ROV': [
+            "ROV",
+            "Remote Operated Vehicle",
+            "Can emit EMP pulses to stun towers",
+            "Steals resources from your stockpile"
+        ],
+        'HarvesterDrone': [
+            "Harvester Drone",
+            "Automated resource collection unit",
+            "Protected by energy shields",
+            "Drains resources from the area"
+        ],
+        'MiningLaser': [
+            "Mining Laser",
+            "High-powered cutting equipment",
+            "Continuous beam attack",
+            "Resistant to heat damage"
+        ],
+        'SonicDisruptor': [
+            "Sonic Disruptor",
+            "Uses sonic waves to disorient defenses",
+            "Can stun multiple towers",
+            "Uses echolocation to reveal hidden units"
+        ],
+        
+        # Special Units
+        'CollectorCrab': [
+            "Collector Crab",
+            "Biomechanically enhanced crustacean",
+            "Heavily armored shell",
+            "Drains resources over time"
+        ],
+        'SeabedCrawler': [
+            "Seabed Crawler",
+            "Heavy tracked mining vehicle",
+            "Extremely durable armor",
+            "Crushes through defenses"
+        ],
+        'PressureCrusher': [
+            "Pressure Crusher",
+            "Weaponized pressure manipulation",
+            "Creates damaging pressure waves",
+            "Adapted to extreme depths"
+        ],
+        'VortexGenerator': [
+            "Vortex Generator",
+            "Creates powerful water currents",
+            "Pushes back defensive units",
+            "Protected by water shield"
+        ],
+        
+        # Elite Units
+        'BionicSquid': [
+            "Bionic Squid",
+            "Enhanced deep sea predator",
+            "Releases ink clouds for cover",
+            "Can grab and hold towers"
+        ],
+        'NaniteSwarm': [
+            "Nanite Swarm",
+            "Self-replicating micro-machines",
+            "Continuously repairs itself",
+            "Can split into multiple units"
+        ],
+        
+        # Boss Unit
         'CorporateSubmarine': [
             "Corporate Submarine",
-            "Boss unit - heavily armored sub",
-            "Health: 1000, Speed: Very Slow",
-            "Damage: 100"
+            "Massive command vessel",
+            "Deploys support drones",
+            "Protected by energy barrier",
+            "Launches missile barrages"
         ]
     }
     
-    return tooltips.get(enemy_type, [f"Unknown Enemy: {enemy_type}"])
+    return tooltips.get(enemy_type, ["Unknown Enemy Type"])
