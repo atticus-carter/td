@@ -310,17 +310,23 @@ def get_tower_tooltip_text(tower_name):
         'Beggiatoa': [
             "Beggiatoa",
             "Type: Area Effect",
-            "Damages enemies that pass nearby",
+            "Creates evolving bacterial colonies",
             "Damage: 5 per second, Radius: 1 cell",
             "Cost: 75 lipids",
             "",
             "Power: Bacterial Bloom",
-            "Creates damaging bacterial colonies",
-            "50% base damage, 3/6/9s duration",
+            "Colonies spread and adapt over time",
+            "- Forms colonies from defeated enemies",
+            "- Colonies can develop adaptations:",
+            "  • Acidic: +50% damage",
+            "  • Sticky: 30% slow effect",
+            "  • Parasitic: Drains resources",
+            "  • Sulfuric: Reduces armor",
             "",
             "⭐ Star Upgrades:",
-            "+50% area damage per star",
-            "+3s colony duration per star"
+            "+50% colony damage per star",
+            "+2 max colonies per star",
+            "+15% mutation chance per star"
         ],
         
         # Rare towers
@@ -388,6 +394,42 @@ def get_tower_tooltip_text(tower_name):
     # Return the tooltip for the specified tower, or a generic message if not found
     return tooltips.get(tower_name, [f"Unknown Tower: {tower_name}"])
 
+def get_colony_tooltip_text(colony):
+    """Return tooltip text for a bacterial colony"""
+    lines = [
+        f"Bacterial Colony - Generation {colony.generation}",
+        f"Health: {int(colony.health)}%",
+        f"Maturity: {int(colony.maturity * 100)}%",
+        "",
+        "Adaptations:"
+    ]
+    
+    if colony.strain_type == "acidic":
+        lines.extend([
+            "• Acidic Strain",
+            "  Increased damage output",
+            f"  +50% damage"
+        ])
+    elif colony.strain_type == "sticky":
+        lines.extend([
+            "• Sticky Strain",
+            "  Slows nearby enemies",
+            f"  30% movement reduction"
+        ])
+    elif colony.strain_type == "parasitic":
+        lines.extend([
+            "• Parasitic Strain",
+            "  Drains resources from enemies",
+            f"  {int(colony.resource_consumption)} resource drain"
+        ])
+    elif colony.strain_type == "sulfuric":
+        lines.extend([
+            "• Sulfuric Strain",
+            "  Reduces enemy armor",
+            "  20% armor reduction"
+        ])
+    
+    return lines
 
 def get_enemy_tooltip_text(enemy_type):
     """

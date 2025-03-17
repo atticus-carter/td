@@ -12,11 +12,18 @@ from wave_manager import WaveManager
 from combine import CombineManager
 from tooltip import get_tower_tooltip_text, get_enemy_tooltip_text
 from auto_collect import check_auto_collect
+from sediment_generator import SedimentGenerator
+import random
 
 class GameplayManager:
     def __init__(self, biome, level):
         self.biome = biome
         self.level = level
+        
+        # Initialize sediment generator
+        self.sediment_generator = SedimentGenerator(biome, level)
+        self.background = self.sediment_generator.get_background()
+        
         self.towers = []
         self.enemies = []
         self.projectiles = []
@@ -81,6 +88,26 @@ class GameplayManager:
         
         self.resource_orbs = []  # Add list to track active resource orbs
         
+        # Load PNG images for towers with fallback for missing assets
+        self.tower_images = {}
+        tower_types = [
+            'BlackSmoker', 'RiftiaTubeWorm', 'BlueCilliates', 'SquatLobster',
+            'SpiderCrab', 'GiantSquid', 'ColossalSquid', 'DumboOctopus'
+        ]
+        
+        # Create a default surface for missing assets
+        default_surface = pygame.Surface((32, 32))  # Adjust size as needed
+        default_surface.fill((100, 100, 100))  # Gray color
+        pygame.draw.rect(default_surface, (150, 150, 150), (8, 8, 16, 16))  # Simple shape
+        
+        for tower_name in tower_types:
+            try:
+                img_path = f'assets/{tower_name}.png'
+                self.tower_images[tower_name] = pygame.image.load(img_path).convert_alpha()
+            except (FileNotFoundError, pygame.error):
+                # Use default surface for missing assets
+                self.tower_images[tower_name] = default_surface.copy()
+        
     def get_tower_sell_value(self, tower):
         """Calculate refund value for selling a tower (50% of purchase cost)"""
         tower_costs = {}
@@ -118,19 +145,34 @@ class GameplayManager:
     def create_tower(self, tower_name, grid_x, grid_y, star_level=1):
         """Create a new tower of the appropriate type"""
         tower = None
+        
+        # Handle tower types
         if tower_name in ['BlackSmoker', 'BubblePlume', 'BrinePool', 'OsedaxWorm', 'Nautilus']:
-            tower = ResourceTower(grid_x, grid_y, tower_name, self.biome)
+            tower = ResourceTower(grid_x, grid_y, tower_name, self, self.biome)
         elif tower_name in ['RiftiaTubeWorm', 'Rockfish', 'Hagfish', 'Muusoctopus', 'GiantSquid']:
-            tower = ProjectileTower(grid_x, grid_y, tower_name, self.biome)
+            tower = ProjectileTower(grid_x, grid_y, tower_name, self, self.biome)
         elif tower_name in ['SquatLobster', 'SpiderCrab', 'Chimaera', 'SleeperShark', 'ColossalSquid']:
-            tower = TankTower(grid_x, grid_y, tower_name, self.biome)
-        elif tower_name in ['BlueCilliates', 'VesicomyidaeClams', 'MuscleBed', 'Beggiatoa', 'DumboOctopus']:
-            tower = EffectTower(grid_x, grid_y, tower_name, self.biome)
-            
+            tower = TankTower(grid_x, grid_y, tower_name, self, self.biome)
+        elif tower_name in ['BlueCilliates', 'VesicomyidaeClams', 'MuscleBed', 'DumboOctopus', 'Beggiatoa']:
+            tower = EffectTower(grid_x, grid_y, tower_name, self, self.biome)
+                
         if tower:
             tower.stars = star_level
             tower._setup_tower_properties()
         return tower
+
+    def place_tower(self, tower_type, grid_x, grid_y):
+        """Place a new tower on the grid"""
+        if tower_type == "basic":
+            tower_name = "RiftiaTubeWorm"  # Default basic tower
+        elif tower_type == "frost":
+            tower_name = "Rockfish"  # Default frost tower
+        else:
+            return
+            
+        tower = self.create_tower(tower_name, grid_x, grid_y)
+        if tower:
+            self.towers.append(tower)
 
     def handle_input(self, event):
         if event.type == pygame.KEYDOWN:
@@ -281,12 +323,36 @@ class GameplayManager:
                     self.combine_manager.cancel_combine()
 
     def update(self, dt):
+        """Update game state"""
         if self.paused:
-            # Only handle pause button when paused
-            mouse_pos = pygame.mouse.get_pos()
-            self.is_pause_hover = self.pause_button.rect.collidepoint(mouse_pos)
-            return GameState.GAMEPLAY
+            return None
             
+        # Update towers and collect spawned orbs
+        for tower in self.towers[:]:
+            result = tower.update(dt, self)
+            
+            # Handle spawned resource orbs
+            if isinstance(result, list) and len(result) > 0 and hasattr(result[0], 'resource_type'):
+                self.resource_orbs.extend(result)
+            
+            if tower.health <= 0:
+                self.towers.remove(tower)
+                
+        # Update resource orbs and check for auto-collection
+        for orb in self.resource_orbs[:]:
+            if orb.update(dt):  # Returns True when orb should be removed
+                if orb.active:  # If orb is still active, auto-collect it
+                    self.resources[orb.resource_type] += orb.collect(auto_collected=True)
+                self.resource_orbs.remove(orb)
+                continue
+                
+            # Check for auto-collection by appropriate towers
+            for tower in self.towers:
+                if check_auto_collect(orb, tower):
+                    self.resources[orb.resource_type] += orb.collect(auto_collected=True)
+                    self.resource_orbs.remove(orb)
+                    break
+
         # Update wave state and spawn enemies
         if not self.wave_manager.update(dt, self.enemies):
             # No more waves and all enemies defeated
@@ -342,6 +408,9 @@ class GameplayManager:
             if projectile.update(dt):
                 self.projectiles.remove(projectile)
                 
+        # Update sediment generator for animated elements
+        self.sediment_generator.update(dt)
+                
         return GameState.GAMEPLAY
 
     def handle_hover(self, mouse_pos):
@@ -355,6 +424,7 @@ class GameplayManager:
             grid_x = (mouse_x - SIDEBAR_WIDTH) // CELL_WIDTH
             grid_y = mouse_y // CELL_HEIGHT
             
+            # Then check towers
             for tower in self.towers:
                 if tower.x == grid_x and tower.y == grid_y:
                     self.hovering_tower = tower.name
@@ -388,8 +458,10 @@ class GameplayManager:
         if self.sell_bin_rect.collidepoint(mouse_x, mouse_y):
             self.tooltip.set_content(["Sell Tower", "Drag towers here to sell", "Refunds 50% of cost"])
             self.tooltip.show(mouse_x + 15, mouse_y + 15)
+            self.hovering_sell_bin = True
             return
-                
+            
+        self.hovering_sell_bin = False
         self.tooltip.hide()
 
     def draw_sell_bin(self, surface):
@@ -423,16 +495,90 @@ class GameplayManager:
         text_rect = sell_text.get_rect(center=(self.sell_bin_rect.centerx, self.sell_bin_rect.bottom - 10))
         surface.blit(sell_text, text_rect)
 
+    def draw_tower_effects(self, surface, tower):
+        """Draw shadow and glow effects for a tower"""
+        # Calculate tower center position
+        tower_x = tower.x * CELL_WIDTH + SIDEBAR_WIDTH + CELL_WIDTH/2
+        tower_y = tower.y * CELL_HEIGHT + CELL_HEIGHT/2
+
+        glow_size = int(CELL_WIDTH * 1.3)  # Slightly larger than the tower
+        
+        # Create a small surface first for chunky pixelation
+        small_size = 6  # Very small for even chunkier pixelation
+        small_glow = pygame.Surface((small_size, small_size), pygame.SRCALPHA)
+        
+        # Very subtle glow colors - much more transparent now (alpha reduced to 12)
+        if isinstance(tower, ResourceTower):
+            glow_color = (255, 230, 180, 1)  # Very subtle golden glow
+        elif isinstance(tower, ProjectileTower):
+            glow_color = (180, 210, 255, 1)  # Very subtle blue glow
+        elif isinstance(tower, TankTower):
+            glow_color = (255, 190, 190, 1)  # Very subtle red glow
+        elif isinstance(tower, EffectTower):
+            glow_color = (190, 255, 190, 1)  # Very subtle green glow
+        else:
+            glow_color = (235, 235, 235, 1)  # Very subtle white glow
+        
+        # Use fixed noise pattern (based on tower position) to avoid wiggling
+        # This makes the noise "attached" to the tower position instead of random each frame
+        noise_seed = hash(f"{tower.x}{tower.y}") % 1000  # Deterministic seed based on tower position
+        random.seed(noise_seed)
+        noise_map = [[random.uniform(0.7, 1.0) for _ in range(small_size)] for _ in range(small_size)]
+        random.seed()  # Reset the random seed
+        
+        # Draw a noisy, imperfect glow on the small surface
+        for y in range(small_size):
+            for x in range(small_size):
+                # Calculate distance from center (normalized)
+                center = small_size / 2
+                dx = (x - center) / center
+                dy = (y - center) / center
+                distance = min(1.0, (dx*dx + dy*dy) ** 0.5)
+                
+                # Apply subtle irregularity based on fixed noise pattern
+                if 0.7 < distance < 1.0:
+                    # Use position-based noise instead of random per-frame
+                    distance += (noise_map[y][x] - 0.85) * 0.2
+                
+                # Gradient alpha based on distance from center
+                if distance < 1.0:
+                    # Create a steeper falloff for more gradient
+                    falloff = 1.0 - (distance ** 1.5)  # Steeper power curve
+                    # Add noise to the alpha for uneven glow but much more subtle
+                    alpha = int(glow_color[3] * falloff * noise_map[y][x])
+                    if alpha > 0:
+                        small_glow.set_at((x, y), (glow_color[0], glow_color[1], glow_color[2], alpha))
+        
+        # Scale up the small glow for chunky pixelated effect
+        pixelated_glow = pygame.transform.scale(small_glow, (glow_size, glow_size))
+        
+        # Add a very minimal fixed offset based on tower position (no randomness for stability)
+        # This gives each tower a slightly unique look but doesn't change frame to frame
+        offset_x = ((tower.x * 3) % 3) - 1
+        offset_y = ((tower.y * 3) % 3) - 1
+        
+        # Blit the pixelated glow
+        surface.blit(pixelated_glow,
+                   (int(tower_x - glow_size/2) + offset_x,
+                    int(tower_y - glow_size/2) + offset_y),
+                   special_flags=pygame.BLEND_ADD)
+
     def draw(self, surface):
+        # Draw background with sediment first (sediment should be visible underneath everything)
+        surface.blit(self.background, (SIDEBAR_WIDTH, 0))
+        
         # Create a new surface for this frame
-        frame_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-        frame_surface.fill(COLOR_BACKGROUND)
+        frame_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+        
+        # Draw the sediment generator's animated elements
+        self.sediment_generator.draw(frame_surface)
         
         # Draw background grid
         self.grid.draw(frame_surface)
 
         # Draw towers
         for tower in self.towers:
+            self.draw_tower_effects(frame_surface, tower)
             tower.draw(frame_surface)
 
         # Draw combine manager elements
@@ -448,7 +594,11 @@ class GameplayManager:
             enemy.draw(frame_surface)
         for projectile in self.projectiles:
             projectile.draw(frame_surface)
-
+        
+        # Draw resource orbs on the topmost layer
+        for orb in self.resource_orbs:
+            orb.draw(frame_surface)
+        
         # Draw resources in sidebar
         self.resource_display.draw(frame_surface, self.resources)
 

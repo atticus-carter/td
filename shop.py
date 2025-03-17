@@ -80,6 +80,9 @@ class Shop:
         # Add rare towers
         rare_towers = list(RARE_TOWERS.keys())
         
+        # Ensure Beggiatoa tower is included
+        available_towers.append('Beggiatoa')
+        
         # Clear current slots
         for slot in self.slots:
             slot['tower'] = None
@@ -179,6 +182,12 @@ class Shop:
             
         # Clear the slot
         self.slots[slot_index]['tower'] = None
+        
+        # Remove Beggiatoa from available towers
+        if tower_name == 'Beggiatoa':
+            for slot in self.slots:
+                if slot['tower'] and slot['tower'][0] == 'Beggiatoa':
+                    slot['tower'] = None
         return True
 
     def draw(self, surface, resources):
